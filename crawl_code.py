@@ -32,7 +32,7 @@ logging.basicConfig(filename="crawl.log", filemode="w", format="%(asctime)s %(na
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.57'
 }
-MAX_RETRY_CNT = 20
+MAX_RETRY_CNT = 500
 CODE_START_PATTERN = r"<pre id=\"program-source-text\" class=\"prettyprint.+?program-source\" style=\"padding: 0\.5em;\">"
 
 
@@ -86,12 +86,14 @@ def fetch_code(contest_id, submission_id) -> str:
 
 def main():
 
-    langs = ["C++", "Java", "Python", "Rust"]
+    # langs = ["C++", "Java", "Python", "Rust"]
+    langs = ["Rust"]
 
     save_code_dir = "./saved/"
     os.makedirs(save_code_dir, exist_ok=True)
 
     for lang in langs:
+        print(f"********** {lang} **********")
 
         # load all submissions
         all_submissions = []
@@ -102,7 +104,7 @@ def main():
 
         # crawl code from website
         with open(os.path.join(save_code_dir, f"{lang}_code.jsonl"), mode="a", encoding="utf-8", buffering=1) as f:
-            for submission in all_submissions:
+            for submission in tqdm(all_submissions, ascii=True):
                 submission_id = submission["id"]
                 contest_id = submission["contest_id"]
 
