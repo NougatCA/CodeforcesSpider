@@ -26,6 +26,8 @@ def delete_proxy(proxy):
     requests.get("http://127.0.0.1:5010/delete/?proxy={}".format(proxy))
 
 
+logging.basicConfig(filename="crawl.log", filemode="w", format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
+                    datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
 # User Agent for anti-spider
 HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.57'
@@ -53,7 +55,7 @@ def fetch_code(contest_id, submission_id) -> str:
                 # renew proxy
                 delete_proxy(proxy)
                 proxy = get_proxy().get("proxy")
-                logging.info(f"Retry proxy: http://{proxy}.")
+                logging.warning(f"Retry proxy: http://{proxy}.")
                 raise ValueError(f"Request status error, status code: {response.status_code}. "
                                  f"Request URL: {url}.")
             content = response.text
@@ -63,7 +65,7 @@ def fetch_code(contest_id, submission_id) -> str:
                 # renew proxy
                 delete_proxy(proxy)
                 proxy = get_proxy().get("proxy")
-                logging.info(f"Retry proxy: http://{proxy}.")
+                logging.warning(f"Retry proxy: http://{proxy}.")
                 raise ValueError(f"Source code not found. url: {url}")
 
             start_pos = match.end()
