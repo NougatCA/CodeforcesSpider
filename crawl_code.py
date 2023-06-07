@@ -47,7 +47,7 @@ def fetch_code(contest_id, submission_id) -> str:
         try:
             # use proxy ip for the access to the website
             response = requests.get(
-                url=url, timemout=5, headers=HEADERS, proxies={"http": "http://{}".format(proxy)})
+                url=url, timeout=5, headers=HEADERS, proxies={"http": "http://{}".format(proxy)})
 
             if response.status_code != 200:
                 # renew proxy
