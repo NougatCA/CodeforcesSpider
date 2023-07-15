@@ -1,6 +1,7 @@
 import json
 import logging
 import os
+import sys
 import time
 from fake_useragent import UserAgent
 import requests
@@ -98,7 +99,7 @@ def fetch_code(contest_id, submission_id):
 
 def main():
 
-    for split_id in range(5):
+    for split_id in range_list:
         contest_submission_ids = []
         with open(f"required/{lang}_required_split_{split_id}.jsonl", mode="r", encoding="utf-8") as f:
             for line in f.readlines():
@@ -114,11 +115,16 @@ def main():
             fetch_code(contest_id=contest_id, submission_id=submission_id)
             time.sleep(2)
 
-        time.sleep(600)
+        time.sleep(60)
 
 
 if __name__ == "__main__":
-    lang = "Python"
+    lang = sys.argv[1]
+    splits = sys.argv[2]
+    print(lang)
+    range_list = [int(splits)] if "-" not in splits \
+        else range(int(splits.split("-")[0]), int(splits.split("-")[1]) + 1)
+
     save_code_dir = f"./saved_txt/{lang}"
     os.makedirs(save_code_dir, exist_ok=True)
     main()
