@@ -1,11 +1,10 @@
-import html
 import json
 import logging
 import os
-import re
 import time
-
+from fake_useragent import UserAgent
 import requests
+from bs4 import BeautifulSoup
 from tqdm import tqdm
 
 ''' Proxy pool endpoints, powered by https://github.com/jhao104/proxy_pool'''
@@ -29,97 +28,97 @@ def delete_proxy(proxy):
 logging.basicConfig(filename="crawl.log", filemode="w", format="%(asctime)s %(name)s:%(levelname)s:%(message)s",
                     datefmt="%d-%M-%Y %H:%M:%S", level=logging.DEBUG)
 # User Agent for anti-spider
-HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/113.0.0.0 Safari/537.36 Edg/113.0.1774.57'
-}
-MAX_RETRY_CNT = 500
-CODE_START_PATTERN = r"<pre id=\"program-source-text\" class=\"prettyprint.+?program-source\" style=\"padding: 0\.5em;\">"
+ua = UserAgent()
+# USER_AGENT = "Mozilla/5.0 (Windows NT 6.1) AppleWebKit/537.2 (KHTML, like Gecko) Chrome/22.0.1216.0 Safari/537.2"
+MAX_RETRY_COUNT = 300
 
 
-def fetch_code(contest_id, submission_id) -> str:
+def save_code(submission_id, code):
+    with open(os.path.join(save_code_dir, f"{submission_id}.txt"), mode="w", encoding="utf-8") as f:
+        f.write(code)
+
+
+def fetch_code(contest_id, submission_id):
+
     url = f"https://codeforces.com/contest/{contest_id}/submission/{submission_id}"
 
     # Get the random ip proxy
-    proxy = get_proxy().get("proxy")
-    logging.info(f"Current proxy: http://{proxy}.")
-    retry_count = MAX_RETRY_CNT
-    match = None
-    code = None
-    while retry_count > 0:
+    num_retry = 0
+    while num_retry < MAX_RETRY_COUNT:
+        ans = get_proxy()
+        while ans.get("proxy") is None or ans.get("proxy") == "":
+            ans = get_proxy()
+            time.sleep(5)
+
+        user_agent = ua.random
+        if ans.get("https"):
+            proxy = {"https": "https://{}".format(ans.get("proxy"))}
+        else:
+            proxy = {"http": "http://{}".format(ans.get("proxy"))}
+
+        logging.info(f"Current proxy: http://{proxy}.")
+
         try:
             # use proxy ip for the access to the website
             response = requests.get(
-                url=url, timeout=5, headers=HEADERS, proxies={"http": "http://{}".format(proxy)})
+                url=url,
+                timeout=5,
+                headers={
+                    'User-Agent': user_agent
+                },
+                proxies=proxy
+            )
 
             if response.status_code != 200:
-                # renew proxy
-                delete_proxy(proxy)
-                proxy = get_proxy().get("proxy")
-                logging.warning(f"Retry proxy: http://{proxy}.")
                 raise ValueError(f"Request status error, status code: {response.status_code}. "
                                  f"Request URL: {url}.")
-            content = response.text
 
-            match = re.search(CODE_START_PATTERN, content)
-            if match is None:
-                # renew proxy
-                delete_proxy(proxy)
-                proxy = get_proxy().get("proxy")
-                logging.warning(f"Retry proxy: http://{proxy}.")
+            soup = BeautifulSoup(response.content, "html.parser")
+            code = soup.find(id="program-source-text")
+            if code is None:
                 raise ValueError(f"Source code not found. url: {url}")
 
-            start_pos = match.end()
-            end_pos = content.find("</pre>", start_pos)
-            result = content[start_pos: end_pos]
-            code = html.unescape(result)
-            return code
+            code = code.text
+            save_code(submission_id, code.strip())
+            break
 
         except Exception:
-            retry_count -= 1
+            delete_proxy(proxy)
+            num_retry += 1
 
-    # delete broken proxy ip address
-    delete_proxy(proxy)
-    raise ValueError(
-        f"Failed after {MAX_RETRY_CNT} times retry. url: {url}")
-    return None
+            if num_retry > 200:
+                time.sleep(20)
+            elif num_retry > 100:
+                time.sleep(10)
+            elif num_retry > 50:
+                time.sleep(5)
+            else:
+                time.sleep(2)
 
 
 def main():
 
-    # langs = ["C++", "Java", "Python", "Rust"]
-    langs = ["Rust"]
-
-    save_code_dir = "./saved/"
-    os.makedirs(save_code_dir, exist_ok=True)
-
-    for lang in langs:
-        print(f"********** {lang} **********")
-
-        # load all submissions
-        all_submissions = []
-        with open(f"{lang}_required.jsonl", mode="r", encoding="utf-8") as f:
+    for split_id in range(5):
+        contest_submission_ids = []
+        with open(f"required/{lang}_required_split_{split_id}.jsonl", mode="r", encoding="utf-8") as f:
             for line in f.readlines():
                 data = json.loads(line)
-                all_submissions.append(data)
+                submission_id = data["id"]
+                contest_id = data["contest_id"]
+                contest_submission_ids.append((contest_id, submission_id))
 
         # crawl code from website
-        with open(os.path.join(save_code_dir, f"{lang}_code.jsonl"), mode="a", encoding="utf-8", buffering=1) as f:
-            for submission in tqdm(all_submissions, ascii=True):
-                submission_id = submission["id"]
-                contest_id = submission["contest_id"]
+        for contest_id, submission_id in tqdm(contest_submission_ids, ascii=True, desc=f"Split {split_id}"):
+            if os.path.exists(os.path.join(save_code_dir, f"{submission_id}.txt")):
+                continue
+            fetch_code(contest_id=contest_id, submission_id=submission_id)
+            time.sleep(2)
 
-                code = fetch_code(contest_id=contest_id,
-                                  submission_id=submission_id)
-
-                data = {
-                    "id": submission_id,
-                    "contest_id": contest_id,
-                    "source_code": code.strip()
-                }
-
-                f.write(json.dumps(data))
-                f.write("\n")
+        time.sleep(600)
 
 
 if __name__ == "__main__":
+    lang = "Python"
+    save_code_dir = f"./saved_txt/{lang}"
+    os.makedirs(save_code_dir, exist_ok=True)
     main()

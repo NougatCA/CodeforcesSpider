@@ -2,6 +2,7 @@ import time
 import requests
 import os
 import json
+from tqdm import tqdm
 
 
 def main():
@@ -13,10 +14,11 @@ def main():
     # codeforces api
     url = "https://codeforces.com/api/contest.status"
     # fetch by contest id
-    for contest_id in range(6, 10):
+    for contest_id in tqdm(range(10, 1845), ascii=True):
+    # for contest_id in ["1837"]:
 
-        print(f"********** CONTEST {contest_id} **********")
-        print(f"Fetching submissions...")
+        # print(f"********** CONTEST {contest_id} **********")
+        # print(f"Fetching submissions...")
 
         params = {
             "contestId": contest_id,
@@ -41,7 +43,7 @@ def main():
         submissions = data["result"]
         # only needs accepted submissions
         ok_submissions = [submission for submission in submissions if submission["verdict"] == "OK"]
-        print(f"Submissions fetched, accepted submissions: {len(ok_submissions)}")
+        # print(f"Submissions fetched, accepted submissions: {len(ok_submissions)}")
 
         # save submission information
         output_dir = os.path.join(output_root, str(contest_id))
@@ -74,9 +76,9 @@ def main():
                     f.write(line)
                     f.write("\n")
 
-        print(f"Submissions saved")
+        # print(f"Submissions saved")
 
-        time.sleep(2)
+        time.sleep(1.5)
 
 
 if __name__ == "__main__":
