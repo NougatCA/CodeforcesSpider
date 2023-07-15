@@ -14,8 +14,8 @@ python crawl_code.py Java 0-9
 ```
 
 where the first argument refers to the language, chosen from 
-"C++", "Java", "Python" and "Rust". The second argument denotes 
-the split range, valid format: "1" or "2-8".
+`C++`, `Java`, `Python` and `Rust`. The second argument denotes 
+the split range, valid format: `1` or `2-8`.
 
 ### Crawl status
 
