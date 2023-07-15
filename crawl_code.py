@@ -121,7 +121,6 @@ def main():
 if __name__ == "__main__":
     lang = sys.argv[1]
     splits = sys.argv[2]
-    print(lang)
     range_list = [int(splits)] if "-" not in splits \
         else range(int(splits.split("-")[0]), int(splits.split("-")[1]) + 1)
 
