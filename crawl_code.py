@@ -3,6 +3,7 @@ import logging
 import os
 import random
 import time
+import sys
 from fake_useragent import UserAgent
 import requests
 from bs4 import BeautifulSoup
@@ -118,12 +119,12 @@ def main():
 
 
 if __name__ == "__main__":
-    # lang = sys.argv[1]
-    # splits = sys.argv[2]
-    # range_list = [int(splits)] if "-" not in splits \
-    #     else range(int(splits.split("-")[0]), int(splits.split("-")[1]) + 1)
-    lang = "Rust"
-    range_list = range(4, 5)
+    lang = sys.argv[1]
+    splits = sys.argv[2]
+    range_list = [int(splits)] if "-" not in splits \
+        else range(int(splits.split("-")[0]), int(splits.split("-")[1]) + 1)
+    # lang = "Rust"
+    # range_list = range(4, 5)
 
     save_code_dir = f"./saved_txt/{lang}"
     os.makedirs(save_code_dir, exist_ok=True)
