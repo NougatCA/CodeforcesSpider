@@ -22,6 +22,6 @@ the split range, valid format: `1` or `2-8`.
 |           | C++  | Java | Python | Rust |
 |-----------|------|------|--------|------|
 | Total     | 0-94 | 0-16 | 0-14   | 0    |
-| Working   |      | 0-16 | 0-9    | 0    |
-| Available | 0-94 | N.A. | 10-14  | N.A. |
-| Done      |      |      |        |      |
+| Working   |      | 5-16 | N.A    | N.A. |
+| Available | 0-94 | N.A. | N.A    | N.A. |
+| Done      |      | 0-4  | 0-14   | 0    |

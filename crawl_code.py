@@ -1,7 +1,7 @@
 import json
 import logging
 import os
-import sys
+import random
 import time
 from fake_useragent import UserAgent
 import requests
@@ -101,7 +101,8 @@ def main():
 
     for split_id in range_list:
         contest_submission_ids = []
-        with open(f"required/{lang}_required_split_{split_id}.jsonl", mode="r", encoding="utf-8") as f:
+        # with open(f"required/{lang}_required_split_{split_id}.jsonl", mode="r", encoding="utf-8") as f:
+        with open(f"required/{lang}_required.jsonl", mode="r", encoding="utf-8") as f:
             for line in f.readlines():
                 data = json.loads(line)
                 submission_id = data["id"]
@@ -113,16 +114,16 @@ def main():
             if os.path.exists(os.path.join(save_code_dir, f"{submission_id}.txt")):
                 continue
             fetch_code(contest_id=contest_id, submission_id=submission_id)
-            time.sleep(2)
-
-        time.sleep(60)
+            time.sleep(2 + random.random())
 
 
 if __name__ == "__main__":
-    lang = sys.argv[1]
-    splits = sys.argv[2]
-    range_list = [int(splits)] if "-" not in splits \
-        else range(int(splits.split("-")[0]), int(splits.split("-")[1]) + 1)
+    # lang = sys.argv[1]
+    # splits = sys.argv[2]
+    # range_list = [int(splits)] if "-" not in splits \
+    #     else range(int(splits.split("-")[0]), int(splits.split("-")[1]) + 1)
+    lang = "Rust"
+    range_list = range(4, 5)
 
     save_code_dir = f"./saved_txt/{lang}"
     os.makedirs(save_code_dir, exist_ok=True)
