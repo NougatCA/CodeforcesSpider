@@ -102,8 +102,8 @@ def main():
 
     for split_id in range_list:
         contest_submission_ids = []
-        # with open(f"required/{lang}_required_split_{split_id}.jsonl", mode="r", encoding="utf-8") as f:
-        with open(f"required/{lang}_required.jsonl", mode="r", encoding="utf-8") as f:
+        with open(f"required/{lang}_required_split_{split_id}.jsonl", mode="r", encoding="utf-8") as f:
+        # with open(f"required/{lang}_required.jsonl", mode="r", encoding="utf-8") as f:
             for line in f.readlines():
                 data = json.loads(line)
                 submission_id = data["id"]
